@@ -4,6 +4,10 @@ test_ai_detector.py
 Tests for AI-generated text detection functionality.
 """
 
+from unittest.mock import MagicMock, patch
+
+import torch
+
 from src.core.ai_detector import (
     detect_ai_probability,
     detect_ai_probability_batch,
@@ -44,8 +48,31 @@ def test_detect_documents_ai_probability_empty():
     assert result == {}
 
 
-def test_detect_documents_ai_probability_single_doc():
+def _make_mock_model_and_tokenizer():
+    """Create mock model and tokenizer that return proper tensor outputs."""
+    mock_model = MagicMock()
+    mock_tokenizer = MagicMock()
+
+    # Tokenizer returns a dict-like object with tensor values
+    mock_tokenizer.return_value = {
+        "input_ids": torch.tensor([[1, 2, 3]]),
+        "attention_mask": torch.tensor([[1, 1, 1]]),
+    }
+
+    # Model returns an object with logits as a real tensor
+    mock_output = MagicMock()
+    mock_output.logits = torch.tensor([[0.8, 0.2]])
+    mock_model.return_value = mock_output
+
+    return mock_model, mock_tokenizer
+
+
+@patch("src.core.ai_detector._get_model_and_tokenizer")
+def test_detect_documents_ai_probability_single_doc(mock_get_model):
     """Test AI detection with a single document."""
+    mock_model, mock_tokenizer = _make_mock_model_and_tokenizer()
+    mock_get_model.return_value = (mock_model, mock_tokenizer)
+
     chunked_docs = {
         "test_doc.txt": ["This is a test chunk of text.", "Another test chunk here."]
     }
@@ -60,8 +87,12 @@ def test_detect_documents_ai_probability_single_doc():
     assert 0.0 <= result["test_doc.txt"]["max"] <= 1.0
 
 
-def test_detect_ai_probability_batch_mixed():
+@patch("src.core.ai_detector._get_model_and_tokenizer")
+def test_detect_ai_probability_batch_mixed(mock_get_model):
     """Test batch detection with mixed empty and non-empty texts."""
+    mock_model, mock_tokenizer = _make_mock_model_and_tokenizer()
+    mock_get_model.return_value = (mock_model, mock_tokenizer)
+
     texts = ["Some text", "", None, "More text"]
     result = detect_ai_probability_batch(texts)
 

@@ -56,7 +56,7 @@ def test_add_user():
 # Adds a user and then checks whether adding same user again raises exception
 def test_duplicate_user():
     add_user("hnsdf9", "ehns-1")
-    with pytest.raises(sqlite3.IntegrityError):
+    with pytest.raises(ValueError):
         add_user("hnsdf9", "ehns-1")
 
 

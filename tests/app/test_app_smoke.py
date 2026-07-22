@@ -75,13 +75,17 @@ def clean_smoke_test_env():
             pass
 
 
+@patch(
+    "src.core.ai_detector.detect_documents_ai_probability",
+    return_value={"doc1.pdf": {"overall": 0.1}, "doc2.pdf": {"overall": 0.1}},
+)
 @patch("src.core.webhook.send_plagiarism_alert")
 @patch(
     "src.core.embedding_model.get_embedding_model_info",
     return_value=("all-MiniLM-L6-v2", 384),
 )
 @patch("src.core.embedding_model.embed_chunks", side_effect=mock_embed_chunks)
-def test_app_smoke(mock_embed, mock_model_info, mock_webhook):
+def test_app_smoke(mock_embed, mock_model_info, mock_webhook, mock_ai):
     # Clean up stale artifacts from prior test runs
     _cleanup_stale_artifacts()
 

@@ -478,7 +478,7 @@ st.title("🔍 Semantic Plagiarism Detection System")
 
 uploaded_files = st.file_uploader(
     "📂 Upload Assignments",
-    type=["pdf", "docx", "txt"],
+    type=["pdf", "docx", "txt", "zip"],
     accept_multiple_files=True,
     key="file_uploader",
 )
